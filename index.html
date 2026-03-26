@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>김준엽 포트폴리오</title>
+  <style>
+    /* --- CSS 시작 --- */
+    * {
+      text-decoration: none;
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      font-family: 'Pretendard', Arial, sans-serif;
+      background: #0f172a;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    a:link, a:visited, a:active {
+      color: inherit;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    header, section, footer {
+      position: relative;
+      z-index: 10;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+    }
+    header h1 { 
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+    }
+    nav a {
+      margin-left: 15px;
+      font-size: 14px;
+      color: #fff;
+    }
+    #langToggle {
+      margin-left: 15px;
+      background: transparent;
+      border: 1px solid #4f46e5;
+      color: #4f46e5;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    section {
+      max-width: 1000px;
+      margin: auto;
+      padding: 80px 20px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      min-height: 80vh;
+    }
+    .hero h2 { font-size: 32px; line-height: 1.4; }
+    .hero p { margin-top: 10px; line-height: 1.6; color: #ccc; }
+    .hero img { width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    
+    .buttons a {
+      display: inline-block;
+      margin-top: 20px;
+      margin-right: 10px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .btn-primary { background: #4f46e5; color: #fff !important; }
+    .btn-secondary { border: 1px solid #ccc; background: white; color: #4f46e5 !important; }
+    .btn-primary:hover { background: #4338ca; }
+
+    /* 프로젝트 그리드 스타일 */
+    .projects {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+    .project {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s;
+    }
+    .project:hover { transform: translateY(-5px); }
+    .project img { width: 100%; height: 180px; object-fit: cover; background: #1e293b; }
+    .project .content { padding: 20px; }
+    .project h4 { margin: 0 0 10px 0; font-size: 18px; color: #4f46e5; }
+    .project p { font-size: 14px; color: #aaa; height: 40px; overflow: hidden; }
+    .tags { margin: 15px 0; }
+    .tags span {
+      background: rgba(79, 70, 229, 0.2);
+      color: #818cf8;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      margin-right: 5px;
+    }
+
+    .about ul { list-style: none; padding: 0; }
+    .about li {
+      background: rgba(255,255,255,0.05);
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .contact-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    .contact form textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .contact form button {
+      padding: 10px 20px;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    footer { text-align: center; padding: 40px; color: #64748b; font-size: 14px; }
+    
+    canvas#bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      opacity: 0.4;
+      pointer-events: none; /* 클릭 이벤트가 아래 요소로 전달되도록 설정 */
+    }
+
+    .up { display: block; text-align: center; margin-top: 30px; color: #4f46e5; font-weight: bold; }
+
+    @media (max-width: 768px) {
+      .hero, .contact-container { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 10px; position: static; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <header id="header">
+    <div>
+      <a href="https://github.com/rlawnsduq1221" target="_blank"><h1>김준엽</h1></a>
+      <p style="font-size:12px; color:#aaa; margin:0;">Frontend Developer • AI Convergence</p>
+    </div>
+    <nav>
+      <a href="#projects">Projects</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <button id="langToggle">ENG</button>
+    </nav>
+  </header>
+
+  <section class="hero" id="up">
+    <div>
+      <h2 id="heroTitle">안녕하세요, 저는 <span style="color:#4f46e5">프론트엔드 개발자</span>가<br> 되고 싶은 김준엽입니다.</h2>
+      <p id="heroText">사용자 중심의 인터페이스와 깔끔한 코드로 사용자 경험을 개선하는 것을 좋아합니다.</p>
+      <div class="buttons">
+        <a href="#projects" class="btn-primary" id="btnProjects">프로젝트 보기</a>
+        <a href="#contact" class="btn-secondary" id="btnContact">연락하기</a>
+      </div>
+    </div>
+    <div>
+      <img src="https://via.placeholder.com/400x400" alt="Profile Photo">
+    </div>
+  </section>
+
+  <section id="projects">
+    <h3>GitHub Projects</h3>
+    <div class="projects" id="repo-container">
+      <p>프로젝트를 불러오는 중...</p>
+    </div>
+  </section>
+
+  <section id="about" class="about">
+    <h3 id="aboutTitle">About me</h3>
+    <p id="aboutText">서울 디지텍고등학교 1학년에 재학중인 김준엽입니다.</p>
+    <ul>
+      <li>학력: 서울 디지텍고등학교, 인공지능융합과</li>
+      <li>도구: Figma · VSCode · Git</li>
+      <li>언어: 한국어(Native) · 영어(Basic)</li>
+    </ul>
+  </section>
+
+  <section id="contact" class="contact">
+    <h3 id="contactTitle">Contact</h3>
+    <div class="contact-container">
+      <div>
+        <p>Email: <a href="mailto:duqldyql0627@naver.com">duqldyql0627@naver.com</a></p>
+        <p>Instagram: <a href="https://www.instagram.com/wnscluq_09/" target="_blank">@wnscluq_09</a></p>
+      </div>
+      <form onsubmit="sendMail(event)">
+        <label>Message:</label>
+        <textarea rows="5" placeholder="간단한 메시지를 적어주세요"></textarea>
+        <button type="submit">Send Email</button>
+      </form>
+    </div>
+    <a href="#up" class="up">위로 가기 ↑</a>
+  </section>
+
+  <footer>
+    &copy; <span id="year"></span> 김준엽 — Built with GitHub API, Canvas & Love
+  </footer>
+
+  <script>
+    /* --- JS 시작 --- */
+    
+    // 1. 년도 업데이트
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 2. 이메일 전송 함수
+    function sendMail(e) {
+      e.preventDefault();
+      const msg = e.target.querySelector('textarea').value;
+      window.location.href = `mailto:duqldyql0627@naver.com?body=${encodeURIComponent(msg)}`;
+    }
+
+    // 3. GitHub API로 프로젝트 불러오기
+    const GITHUB_USERNAME = "rlawnsduq1221";
+
+    async function fetchGitHubRepos() {
+      const container = document.getElementById('repo-container');
+      try {
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=6`);
+        const repos = await response.json();
+        
+        container.innerHTML = ''; // 로딩 문구 제거
+
+        repos.forEach(repo => {
+          if (!repo.fork) { // 포크한 저장소는 제외
+            const card = document.createElement('div');
+            card.className = 'project';
+            
+            // 이미지 규칙: 레포지토리에 thumbnail.png가 있으면 보여주고 없으면 기본 이미지
+            const imgUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${repo.name}/main/thumbnail.png`;
+            
+            card.innerHTML = `
+              <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/400x200/1e293b/fff?text=${repo.name}'" alt="Project Preview">
+              <div class="content">
+                <h4>${repo.name}</h4>
+                <p>${repo.description || "설명이 등록되지 않은 프로젝트입니다."}</p>
+                <div class="tags">
+                  <span>${repo.language || 'HTML'}</span>
+                  <span>⭐ ${repo.stargazers_count}</span>
+                </div>
+                <a href="${repo.html_url}" target="_blank" style="color:#4f46e5; font-weight:bold;">View Source Code →</a>
+              </div>
+            `;
+            container.appendChild(card);
+          }
+        });
+      } catch (err) {
+        container.innerHTML = '<p>프로젝트를 불러오지 못했습니다.</p>';
+      }
+    }
+
+    // 4. 배경 Canvas 애니메이션
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.size = 2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      particles = [];
+      for (let i = 0; i < 80; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function connect() {
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a + 1; b < particles.length; b++) {
+          let dx = particles[a].x - particles[b].x;
+          let dy = particles[a].y - particles[b].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      connect();
+      requestAnimationFrame(animate);
+    }
+
+    // 5. 다국어 지원
+    const langBtn = document.getElementById("langToggle");
+    let currentLang = "kor"; 
+
+    const translations = {
+      kor: {
+        heroTitle: "안녕하세요, 저는 <span style='color:#4f46e5'>프론트엔드 개발자</span>가<br> 되고 싶은 김준엽입니다.",
+        heroText: "사용자 중심의 인터페이스와 깔끔한 코드로 사용자 경험을 개선하는 것을 좋아합니다.",
+        btnProjects: "프로젝트 보기",
+        btnContact: "연락하기",
+        aboutTitle: "About me",
+        aboutText: "서울 디지텍고등학교 1학년에 재학중인 김준엽입니다.",
+        contactTitle: "Contact"
+      },
+      eng: {
+        heroTitle: "Hello, I’m an aspiring <span style='color:#4f46e5'>Frontend Developer</span>,<br> Kim Junyeop.",
+        heroText: "I enjoy improving user experience with clean code and user-centered interfaces.",
+        btnProjects: "View Projects",
+        btnContact: "Contact Me",
+        aboutTitle: "About Me",
+        aboutText: "I’m a first-year student at Seoul Digitech High School, majoring in AI Convergence.",
+        contactTitle: "Contact"
+      }
+    };
+
+    langBtn.addEventListener("click", () => {
+      currentLang = (currentLang === "kor") ? "eng" : "kor";
+      langBtn.textContent = (currentLang === "kor") ? "ENG" : "KOR";
+      
+      document.getElementById("heroTitle").innerHTML = translations[currentLang].heroTitle;
+      document.getElementById("heroText").textContent = translations[currentLang].heroText;
+      document.getElementById("btnProjects").textContent = translations[currentLang].btnProjects;
+      document.getElementById("btnContact").textContent = translations[currentLang].btnContact;
+      document.getElementById("aboutTitle").textContent = translations[currentLang].aboutTitle;
+      document.getElementById("aboutText").textContent = translations[currentLang].aboutText;
+      document.getElementById("contactTitle").textContent = translations[currentLang].contactTitle;
+    });
+
+    // 헤더 패딩 조절
+    function setBodyPadding() {
+      const header = document.getElementById("header");
+      document.body.style.paddingTop = header.offsetHeight + "px";
+    }
+
+    // 초기화 실행
+    init();
+    animate();
+    fetchGitHubRepos();
+    setBodyPadding();
+    window.addEventListener("resize", setBodyPadding);
+
+  </script>
+</body>
+</html>
