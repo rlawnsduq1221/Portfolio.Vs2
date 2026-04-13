@@ -155,7 +155,7 @@ const app = http.createServer(function(request, response) {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
-  console.log('No files/folders needed. Running on memory!');
+const port = process.env.PORT || 3000; // Render에서 주는 포트 사용, 없으면 3000 사용
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
