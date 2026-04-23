@@ -530,7 +530,7 @@ const app = http.createServer(function(request, response) {
   }
 });
 
-const port = process.env.PORT || 3000; // Render에서 주는 포트 사용, 없으면 3000 사용
+const PORT = process.env.PORT || 10000; // Render에서 주는 포트 사용, 없으면 3000 사용
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

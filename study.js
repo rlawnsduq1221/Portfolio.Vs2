@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 3000;
+const PORT = 10000;
 const DATA_FILE = path.join(__dirname, 'studies.json');
 
 // 초기 데이터 파일 생성
