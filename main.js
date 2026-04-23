@@ -159,7 +159,7 @@ input, textarea {
     <div class="container">
       <header>
         <div><h1><a href="/">JunYeop's Board</a></h1>
-            <a href="./index.html"><h3>Return to original page</h3></a>
+            <a href="https://portfolio-vs2-lime.vercel.app"><h3>Return to original page</h3></a>
         </div>
     </header> 
 
