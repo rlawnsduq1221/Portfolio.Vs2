@@ -5,6 +5,7 @@ const qs = require('querystring');
 // [핵심] 파일 대신 데이터를 저장할 객체 변수
 // 생활코딩의 파일 입출력 로직을 메모리 기반으로 대체합니다.
 let boardData = {
+
   'Welcome': '안녕하세요! 파일 없이 메모리에서 바로 작동하는 게시판입니다.',
   'Nodejs': 'Node.js는 자바스크립트 런타임입니다.'
 };

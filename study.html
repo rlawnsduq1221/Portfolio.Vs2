@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Board — 김준엽</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Pretendard', Arial, sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+ 
+    .topnav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 30px;
+      background: rgba(15,23,42,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .home-link { font-size: 14px; font-weight: 700; color: #4f46e5; cursor: pointer; }
+    .home-link:hover { color: #818cf8; }
+    .write-btn {
+      padding: 8px 18px; background: #4f46e5; color: white;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+    }
+    .write-btn:hover { background: #4338ca; }
+ 
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 57px);
+    }
+ 
+    .sidebar {
+      background: #0a111e;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      padding: 20px 12px;
+      overflow-y: auto;
+    }
+    .sidebar-label {
+      font-size: 10px; letter-spacing: 2px; color: #475569;
+      text-transform: uppercase; padding: 0 8px; margin-bottom: 10px; display: block;
+    }
+    #study-list { list-style: none; margin-bottom: 4px; }
+    #study-list li a {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 9px 10px; border-radius: 8px;
+      color: #94a3b8; font-size: 13px; line-height: 1.4;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
+    }
+    #study-list li a:hover { background: rgba(79,70,229,0.1); color: #f8fafc; }
+    #study-list li a.active { background: rgba(79,70,229,0.15); color: #818cf8; }
+    .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+ 
+    .sidebar-section { margin-top: 24px; }
+    #cat-list { list-style: none; }
+    #cat-list li a {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 6px;
+      font-size: 12px; color: #64748b; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    #cat-list li a:hover { background: rgba(255,255,255,0.04); color: #94a3b8; }
+    #cat-list li a.active { color: #818cf8; background: rgba(79,70,229,0.1); }
+    .cat-badge { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+ 
+    .main { padding: 36px 44px; }
+ 
+    .view { display: none; }
+    .view.active { display: block; }
+ 
+    .read-title { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+    .read-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+    .cat-chip {
+      display: inline-block; padding: 3px 10px; border-radius: 100px;
+      font-size: 11px; font-weight: 700; color: white;
+    }
+    .date-text { font-size: 12px; color: #475569; }
+    .content-body {
+      background: #1e293b; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 28px;
+      font-size: 14px; color: #cbd5e1; line-height: 1.9;
+      white-space: pre-wrap; min-height: 200px;
+    }
+    .control-row { display: flex; gap: 10px; margin-bottom: 20px; }
+ 
+    .form-card {
+      background: #1e293b; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 28px; max-width: 680px;
+    }
+    .form-card h3 { font-size: 18px; margin-bottom: 22px; }
+    .form-label { font-size: 12px; color: #64748b; margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
+    .form-card input[type=text],
+    .form-card select,
+    .form-card textarea {
+      width: 100%; padding: 11px 14px;
+      background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; color: #f8fafc; font-size: 14px;
+      font-family: 'Pretendard', Arial, sans-serif;
+      margin-bottom: 18px;
+    }
+    .form-card input:focus, .form-card select:focus, .form-card textarea:focus {
+      outline: none; border-color: #4f46e5;
+    }
+    .form-card select option { background: #1e293b; }
+    .form-card textarea { min-height: 200px; resize: vertical; line-height: 1.7; }
+    .form-hint { font-size: 11px; color: #475569; margin-top: -14px; margin-bottom: 18px; }
+ 
+    .empty { text-align: center; padding: 80px 40px; color: #475569; }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty p { font-size: 15px; color: #64748b; margin-bottom: 6px; }
+    .empty small { font-size: 12px; }
+ 
+    .cat-grid { display: grid; gap: 12px; margin-top: 16px; }
+    .cat-item {
+      background: #1e293b; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 18px; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .cat-item:hover { border-color: #4f46e5; }
+    .cat-item-title { font-weight: 700; margin-bottom: 4px; }
+    .cat-item-date { font-size: 12px; color: #64748b; }
+ 
+    .btn {
+      padding: 8px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; display: inline-block;
+    }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+ 
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+ 
+<nav class="topnav">
+  <a href="/" class="home-link">← 홈으로</a>
+  <button class="write-btn" onclick="showCreate()">+ 새 학습 기록</button>
+</nav>
+ 
+<div class="layout">
+  <aside class="sidebar">
+    <span class="sidebar-label">학습 목록</span>
+    <ul id="study-list"></ul>
+    <div class="sidebar-section">
+      <span class="sidebar-label">카테고리</span>
+      <ul id="cat-list"></ul>
+    </div>
+  </aside>
+ 
+  <main class="main">
+ 
+    <div class="view active" id="view-empty">
+      <div class="empty">
+        <div class="empty-icon">📚</div>
+        <p>아직 학습 기록이 없습니다.</p>
+        <small>오른쪽 위 "+ 새 학습 기록" 버튼으로 시작해보세요!</small>
+      </div>
+    </div>
+ 
+    <div class="view" id="view-read">
+      <div class="control-row">
+        <button class="btn btn-secondary" onclick="showUpdate()">✏️ 수정</button>
+        <button class="btn btn-danger" onclick="deleteEntry()">🗑️ 삭제</button>
+      </div>
+      <div class="read-title" id="read-title"></div>
+      <div class="read-meta">
+        <span class="cat-chip" id="read-cat"></span>
+        <span class="date-text" id="read-date"></span>
+      </div>
+      <div class="content-body" id="read-body"></div>
+    </div>
+ 
+    <div class="view" id="view-create">
+      <div class="form-card">
+        <h3>📝 새 학습 기록</h3>
+        <label class="form-label">제목</label>
+        <input type="text" id="create-title" placeholder="예) JavaScript 클로저 개념 정리">
+        <label class="form-label">카테고리</label>
+        <select id="create-cat"></select>
+        <label class="form-label">학습 내용</label>
+        <p class="form-hint">배운 내용, 핵심 개념, 코드 예시 등을 자유롭게 적어보세요.</p>
+        <textarea id="create-desc" placeholder="오늘 배운 내용을 정리해보세요..."></textarea>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="saveCreate()">💾 저장하기</button>
+          <button class="btn btn-secondary" onclick="cancelForm()">취소</button>
+        </div>
+      </div>
+    </div>
+ 
+    <div class="view" id="view-update">
+      <div class="form-card">
+        <h3>✏️ 학습 기록 수정</h3>
+        <label class="form-label">제목</label>
+        <input type="text" id="update-title">
+        <label class="form-label">카테고리</label>
+        <select id="update-cat"></select>
+        <label class="form-label">학습 내용</label>
+        <textarea id="update-desc"></textarea>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="saveUpdate()">✅ 수정 완료</button>
+          <button class="btn btn-secondary" onclick="cancelForm()">취소</button>
+        </div>
+      </div>
+    </div>
+ 
+    <div class="view" id="view-cat">
+      <div class="read-meta">
+        <span class="cat-chip" id="cat-view-chip"></span>
+        <span class="date-text" id="cat-view-count"></span>
+      </div>
+      <div class="cat-grid" id="cat-view-grid"></div>
+    </div>
+ 
+  </main>
+</div>
+ 
+<script>
+  var CATEGORIES = {
+    'Web':        '#4f46e5',
+    'JavaScript': '#f59e0b',
+    'Backend':    '#10b981',
+    'React':      '#06b6d4',
+    'Python':     '#3b82f6',
+    'AI':         '#8b5cf6',
+    '기타':       '#6b7280'
+  };
+ 
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem('studyData')) || []; }
+    catch(e) { return []; }
+  }
+  function saveData(data) {
+    localStorage.setItem('studyData', JSON.stringify(data));
+  }
+ 
+  var studies = loadData();
+  var currentId = null;
+  var filterCat = null;
+ 
+  function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+  function today() { return new Date().toLocaleDateString('ko-KR'); }
+ 
+  function showView(name) {
+    var views = document.querySelectorAll('.view');
+    for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+    document.getElementById('view-' + name).classList.add('active');
+  }
+ 
+  function renderSidebar() {
+    var list = document.getElementById('study-list');
+    var filtered = filterCat ? studies.filter(function(s){ return s.category === filterCat; }) : studies;
+ 
+    if (filtered.length === 0) {
+      list.innerHTML = '<li style="padding:8px 10px;font-size:12px;color:#475569;">기록이 없습니다.</li>';
+    } else {
+      list.innerHTML = filtered.map(function(s) {
+        var color = CATEGORIES[s.category] || '#6b7280';
+        var active = s.id === currentId ? ' active' : '';
+        return '<li><a onclick="readEntry(\'' + s.id + '\')" class="' + active + '">'
+          + '<span class="cat-dot" style="background:' + color + '"></span>'
+          + '<span>' + s.title + '</span>'
+          + '</a></li>';
+      }).join('');
+    }
+ 
+    var catHTML = '<li><a onclick="clearFilter()" class="' + (!filterCat ? 'active' : '') + '">'
+      + '<span class="cat-badge" style="background:#334155"></span> 전체보기</a></li>';
+    Object.keys(CATEGORIES).forEach(function(cat) {
+      var count = studies.filter(function(s){ return s.category === cat; }).length;
+      if (count === 0) return;
+      var color = CATEGORIES[cat];
+      var active = filterCat === cat ? ' active' : '';
+      catHTML += '<li><a onclick="filterByCategory(\'' + cat + '\')" class="' + active + '">'
+        + '<span class="cat-badge" style="background:' + color + '"></span>'
+        + cat + ' <span style="margin-left:auto;font-size:10px;color:#475569;">' + count + '</span>'
+        + '</a></li>';
+    });
+    document.getElementById('cat-list').innerHTML = catHTML;
+ 
+    var opts = Object.keys(CATEGORIES).map(function(c){ return '<option value="' + c + '">' + c + '</option>'; }).join('');
+    document.getElementById('create-cat').innerHTML = opts;
+    document.getElementById('update-cat').innerHTML = opts;
+  }
+ 
+  function readEntry(id) {
+    var item = null;
+    for (var i = 0; i < studies.length; i++) { if (studies[i].id === id) { item = studies[i]; break; } }
+    if (!item) return;
+    currentId = id;
+ 
+    document.getElementById('read-title').textContent = item.title;
+    document.getElementById('read-body').textContent = item.desc;
+    var chip = document.getElementById('read-cat');
+    chip.textContent = item.category;
+    chip.style.background = CATEGORIES[item.category] || '#6b7280';
+    document.getElementById('read-date').textContent = item.date;
+ 
+    showView('read');
+    renderSidebar();
+  }
+ 
+  function showCreate() {
+    document.getElementById('create-title').value = '';
+    document.getElementById('create-desc').value = '';
+    renderSidebar();
+    document.getElementById('create-cat').value = 'Web';
+    showView('create');
+  }
+ 
+  function saveCreate() {
+    var title = document.getElementById('create-title').value.trim();
+    var desc  = document.getElementById('create-desc').value.trim();
+    var cat   = document.getElementById('create-cat').value;
+    if (!title) { alert('제목을 입력해주세요!'); return; }
+    if (!desc)  { alert('내용을 입력해주세요!'); return; }
+    var item = { id: genId(), title: title, category: cat, desc: desc, date: today() };
+    studies.unshift(item);
+    saveData(studies);
+    readEntry(item.id);
+  }
+ 
+  function showUpdate() {
+    var item = null;
+    for (var i = 0; i < studies.length; i++) { if (studies[i].id === currentId) { item = studies[i]; break; } }
+    if (!item) return;
+    renderSidebar();
+    document.getElementById('update-title').value = item.title;
+    document.getElementById('update-desc').value  = item.desc;
+    document.getElementById('update-cat').value   = item.category;
+    showView('update');
+  }
+ 
+  function saveUpdate() {
+    var title = document.getElementById('update-title').value.trim();
+    var desc  = document.getElementById('update-desc').value.trim();
+    var cat   = document.getElementById('update-cat').value;
+    if (!title) { alert('제목을 입력해주세요!'); return; }
+    var idx = -1;
+    for (var i = 0; i < studies.length; i++) { if (studies[i].id === currentId) { idx = i; break; } }
+    if (idx === -1) return;
+    studies[idx].title    = title;
+    studies[idx].category = cat;
+    studies[idx].desc     = desc;
+    saveData(studies);
+    readEntry(currentId);
+  }
+ 
+  function deleteEntry() {
+    if (!confirm('정말 삭제할까요?')) return;
+    studies = studies.filter(function(s){ return s.id !== currentId; });
+    saveData(studies);
+    currentId = null;
+    if (studies.length > 0) readEntry(studies[0].id);
+    else { showView('empty'); renderSidebar(); }
+  }
+ 
+  function cancelForm() {
+    if (currentId) readEntry(currentId);
+    else if (studies.length > 0) readEntry(studies[0].id);
+    else showView('empty');
+  }
+ 
+  function filterByCategory(cat) {
+    filterCat = cat;
+    var filtered = studies.filter(function(s){ return s.category === cat; });
+    var color = CATEGORIES[cat] || '#6b7280';
+    document.getElementById('cat-view-chip').textContent = cat;
+    document.getElementById('cat-view-chip').style.background = color;
+    document.getElementById('cat-view-count').textContent = filtered.length + '개의 기록';
+ 
+    if (filtered.length === 0) {
+      document.getElementById('cat-view-grid').innerHTML = '<p style="color:#475569;font-size:13px;">해당 카테고리에 기록이 없습니다.</p>';
+    } else {
+      document.getElementById('cat-view-grid').innerHTML = filtered.map(function(s) {
+        return '<div class="cat-item" onclick="readEntry(\'' + s.id + '\')">'
+          + '<div class="cat-item-title">' + s.title + '</div>'
+          + '<div class="cat-item-date">' + s.date + '</div>'
+          + '</div>';
+      }).join('');
+    }
+    currentId = null;
+    showView('cat');
+    renderSidebar();
+  }
+ 
+  function clearFilter() {
+    filterCat = null;
+    if (studies.length > 0) readEntry(studies[0].id);
+    else { showView('empty'); renderSidebar(); }
+  }
+ 
+  // 초기화
+  renderSidebar();
+  if (studies.length > 0) readEntry(studies[0].id);
+  else showView('empty');
+</script>
+</body>
+</html>
