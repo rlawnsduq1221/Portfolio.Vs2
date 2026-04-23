@@ -20,30 +20,153 @@ function templateHTML(title, list, body, control) {
 
   
   <style>
-      body { margin: 0; font-family: sans-serif; background: #0f172a; color: #f8fafc; }
-      .container { max-width: 800px; margin: 50px auto; padding: 20px; }
-      header { border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 30px; }
-      h1 a { color: #4f46e5; text-decoration: none; font-size: 28px; }
-      ol { padding: 0; list-style: none; display: flex; gap: 10px; margin-bottom: 20px; }
-      ol li a { background: #1e293b; color: #cbd5e1; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; border: 1px solid #334155; }
-      ol li a:hover { border-color: #4f46e5; }
-      .content-box { background: #1e293b; padding: 30px; border-radius: 12px; border: 1px solid #334155; }
-      h2 { color: #818cf8; margin-top: 0; }
-      p { line-height: 1.8; color: #94a3b8; white-space: pre-wrap; }
-      .control { margin-bottom: 20px; display: flex; gap: 10px; }
-      .btn { padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold; cursor: pointer; border: none; }
-      .btn-primary { background: #4f46e5; color: white; width: 50px; heigth:32px;display:flex;justify-content:center;}
-      .btn-secondary { background: #475569; color: white; }
-      .btn-danger { background: #ef4444; color: white; }
-      input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+          
+* { box-sizing: border-box; margin: 0; padding: 0; text-decoration: none;}
+
+body { 
+  font-family: 'Pretendard', sans-serif; 
+  background: #0f172a; 
+  color: #f8fafc; 
+  line-height: 1.6;
+}
+
+.container { 
+  max-width: 800px; 
+  margin: 50px auto; 
+  padding: 20px; 
+}
+
+/* 2. 반응형 헤더 영역 */
+header { 
+  border-bottom: 1px solid #1e293b; 
+  padding: 20px 30px; 
+  margin-bottom: 30px; 
+}
+
+/* h1과 h3를 나란히 배치하는 컨테이너 */
+header > div {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: row;
+  align-items: baseline; /* 글자 아래 기준선을 맞춤 */
+  gap: 15px;             /* 요소 간 간격 */
+  flex-wrap: wrap;       /* 화면이 좁으면 줄바꿈 */
+}
+
+h1 { margin: 0; }
+h1 a { 
+  color: #4f46e5; 
+  text-decoration: none; 
+  font-size: 28px; 
+  font-weight: bold;
+}
+
+/* 'Return' 문구 스타일링 */
+h3 {
+  margin: 0; 
+  font-size: 14px; 
+  color: #94a3b8; 
+  font-weight: normal;
+}
+
+/* 3. 목록 및 콘텐츠 박스 */
+ol { 
+  padding: 0; 
+  list-style: none; 
+  display: flex; 
+  gap: 10px; 
+  margin-bottom: 20px; 
+  overflow-x: auto; /* 목록이 길어지면 가로 스크롤 */
+}
+
+ol li a { 
+  background: #1e293b; 
+  color: #cbd5e1; 
+  padding: 6px 12px; 
+  border-radius: 6px; 
+  text-decoration: none; 
+  font-size: 14px; 
+  border: 1px solid #334155; 
+  white-space: nowrap;
+}
+
+ol li a:hover { border-color: #4f46e5; }
+
+.content-box { 
+  background: #1e293b; 
+  padding: 30px; 
+  border-radius: 12px; 
+  border: 1px solid #334155; 
+}
+
+h2 { color: #818cf8; margin-top: 0; }
+
+p { line-height: 1.8; color: #94a3b8; white-space: pre-wrap; }
+
+/* 4. 버튼 및 폼 요소 */
+.control { margin-bottom: 20px; display: flex; gap: 10px; }
+
+.btn { 
+  padding: 8px 15px; 
+  border-radius: 5px; 
+  text-decoration: none; 
+  font-size: 13px; 
+  font-weight: bold; 
+  cursor: pointer; 
+  border: none; 
+}
+
+.btn-primary { 
+  background: #4f46e5; 
+  color: white; 
+  height: 32px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+}
+
+.btn-secondary { background: #475569; color: white; }
+.btn-danger { background: #ef4444; color: white; }
+
+input, textarea { 
+  width: 100%; 
+  padding: 12px; 
+  margin-bottom: 15px; 
+  border-radius: 6px; 
+  border: 1px solid #334155; 
+  background: #0f172a; 
+  color: white; 
+  box-sizing: border-box; 
+}
+
+/* 5. 모바일 반응형 미디어 쿼리 */
+@media (max-width: 600px) {
+  header > div {
+    flex-direction: column; /* 세로로 배치 */
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  h1 a { font-size: 22px; }
+  
+  .container { margin: 20px auto; }
+  
+  .btn { width: 100%; } /* 모바일에서 버튼을 가로로 꽉 채움 */
+}
     </style>
   </head>
   <body>
     <div class="container">
-      <header><h1><a href="/">JunYeop's Board</a></h1></header>
+      <header>
+        <div><h1><a href="/">JunYeop's Board</a></h1>
+            <a href="./index.html"><h3>Return to original page</h3></a>
+        </div>
+    </header> 
+
       <nav>${list}</nav>
       <div class="control">${control}</div>
       <main class="content-box">
+        
         <h2>${title}</h2>
         <div>${body}</div>
       </main>
