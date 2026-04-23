@@ -66,29 +66,27 @@
     .cat-badge { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
  
     .main { 
-  padding: 36px 44px; 
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* 가로축 중앙 정렬 */
-}
+      padding: 36px 44px; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-/* 2. 모든 view가 부모(.main)의 너비를 다 쓰도록 설정 */
-.view { 
-  display: none; 
-  width: 100%; 
-  max-width: 800px; /* 읽기 페이지나 폼의 적절한 최대 너비 설정 */
-}
-.view.active { display: block; }
+    .view { 
+      display: none; 
+      width: 100%; 
+      max-width: 800px;
+    }
+    .view.active { display: block; }
 
-/* 3. form-card가 자체적으로 중앙에 오도록 margin 수정 */
-.form-card {
-  background: #1e293b; 
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 12px; 
-  padding: 28px; 
-  max-width: 680px;
-  margin: 0 auto; /* 좌우 마진을 auto로 주어 중앙 정렬 */
- }
+    .form-card {
+      background: #1e293b; 
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; 
+      padding: 28px; 
+      max-width: 680px;
+      margin: 0 auto;
+     }
  
     .read-title { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
     .read-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
@@ -104,7 +102,7 @@
       white-space: pre-wrap; min-height: 200px;
     }
     .control-row { display: flex; gap: 10px; margin-bottom: 20px; }
- 
+
     .form-card h3 { font-size: 18px; margin-bottom: 22px; }
     .form-label { padding-bottom: 1%;font-size: 12px; color: #64748b; margin-bottom: 8px; display: block; letter-spacing: 0.5px; }
     .form-card input[type=text],
@@ -242,184 +240,260 @@
 </div>
  
 <script>
-  var CATEGORIES = {
-    'Web':        '#4f46e5',
-    'JavaScript': '#f59e0b',
-    'Prepare for exams':    '#10b981',
-    'React':      '#06b6d4',
-    'Python':     '#3b82f6',
-    'AI':         '#8b5cf6',
-    '기타':       '#6b7280'
-  };
- 
-  function loadData() {
-    try { return JSON.parse(localStorage.getItem('studyData')) || []; }
-    catch(e) { return []; }
+// ======================
+// 🔥 설정 및 초기 데이터
+// ======================
+var CATEGORIES = {
+  'Web': '#4f46e5',
+  'JavaScript': '#f59e0b',
+  'Prepare for exams': '#10b981',
+  'React': '#06b6d4',
+  'Python': '#3b82f6',
+  'AI': '#8b5cf6',
+  '기타': '#6b7280'
+};
+
+var studies = [];
+var currentId = null;
+var filterCat = null;
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+function today() {
+  return new Date().toLocaleDateString('ko-KR');
+}
+
+// ======================
+// 🔥 서버 통신
+// ======================
+async function loadData() {
+  try {
+    const res = await fetch('http://localhost:3000/api/studies');
+    return await res.json();
+  } catch (e) {
+    console.error("데이터 로드 실패:", e);
+    return [];
   }
-  function saveData(data) {
-    localStorage.setItem('studyData', JSON.stringify(data));
-  }
- 
-  var studies = loadData();
-  var currentId = null;
-  var filterCat = null;
- 
-  function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
-  function today() { return new Date().toLocaleDateString('ko-KR'); }
- 
-  function showView(name) {
-    var views = document.querySelectorAll('.view');
-    for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
-    document.getElementById('view-' + name).classList.add('active');
-  }
- 
-  function renderSidebar() {
-    var list = document.getElementById('study-list');
-    var filtered = filterCat ? studies.filter(function(s){ return s.category === filterCat; }) : studies;
- 
-    if (filtered.length === 0) {
-      list.innerHTML = '<li style="padding:8px 10px;font-size:12px;color:#475569;">기록이 없습니다.</li>';
-    } else {
-      list.innerHTML = filtered.map(function(s) {
-        var color = CATEGORIES[s.category] || '#6b7280';
-        var active = s.id === currentId ? ' active' : '';
-        return '<li><a onclick="readEntry(\'' + s.id + '\')" class="' + active + '">'
-          + '<span class="cat-dot" style="background:' + color + '"></span>'
-          + '<span>' + s.title + '</span>'
-          + '</a></li>';
-      }).join('');
-    }
- 
-    var catHTML = '<li><a onclick="clearFilter()" class="' + (!filterCat ? 'active' : '') + '">'
-      + '<span class="cat-badge" style="background:#334155"></span> 전체보기</a></li>';
-    Object.keys(CATEGORIES).forEach(function(cat) {
-      var count = studies.filter(function(s){ return s.category === cat; }).length;
-      if (count === 0) return;
-      var color = CATEGORIES[cat];
-      var active = filterCat === cat ? ' active' : '';
-      catHTML += '<li><a onclick="filterByCategory(\'' + cat + '\')" class="' + active + '">'
-        + '<span class="cat-badge" style="background:' + color + '"></span>'
-        + cat + ' <span style="margin-left:auto;font-size:10px;color:#475569;">' + count + '</span>'
+}
+
+async function createData(item) {
+  await fetch('http://localhost:3000/api/studies', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item)
+  });
+}
+
+async function updateData(id, item) {
+  await fetch('http://localhost:3000/api/studies/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item)
+  });
+}
+
+async function deleteData(id) {
+  await fetch('http://localhost:3000/api/studies/' + id, {
+    method: 'DELETE'
+  });
+}
+
+// ======================
+// 🔥 화면 제어 및 렌더링
+// ======================
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+}
+
+function renderSidebar() {
+  var list = document.getElementById('study-list');
+  var filtered = filterCat
+    ? studies.filter(s => s.category === filterCat)
+    : studies;
+
+  // 1. 학습 목록 (사이드바 상단)
+  if (filtered.length === 0) {
+    list.innerHTML = '<li style="padding:8px 10px;font-size:12px;color:#475569;">기록이 없습니다.</li>';
+  } else {
+    list.innerHTML = filtered.map(function(s) {
+      var color = CATEGORIES[s.category] || '#6b7280';
+      var active = s.id === currentId ? ' active' : '';
+      return '<li><a onclick="readEntry(\'' + s.id + '\')" class="' + active + '">'
+        + '<span class="cat-dot" style="background:' + color + '"></span>'
+        + '<span>' + s.title + '</span>'
         + '</a></li>';
-    });
-    document.getElementById('cat-list').innerHTML = catHTML;
- 
-    var opts = Object.keys(CATEGORIES).map(function(c){ return '<option value="' + c + '">' + c + '</option>'; }).join('');
-    document.getElementById('create-cat').innerHTML = opts;
-    document.getElementById('update-cat').innerHTML = opts;
+    }).join('');
   }
- 
-  function readEntry(id) {
-    var item = null;
-    for (var i = 0; i < studies.length; i++) { if (studies[i].id === id) { item = studies[i]; break; } }
-    if (!item) return;
-    currentId = id;
- 
-    document.getElementById('read-title').textContent = item.title;
-    document.getElementById('read-body').textContent = item.desc;
-    var chip = document.getElementById('read-cat');
-    chip.textContent = item.category;
-    chip.style.background = CATEGORIES[item.category] || '#6b7280';
-    document.getElementById('read-date').textContent = item.date;
- 
-    showView('read');
-    renderSidebar();
-  }
- 
-  function showCreate() {
-    document.getElementById('create-title').value = '';
-    document.getElementById('create-desc').value = '';
-    renderSidebar();
-    document.getElementById('create-cat').value = 'Web';
-    showView('create');
-  }
- 
-  function saveCreate() {
-    var title = document.getElementById('create-title').value.trim();
-    var desc  = document.getElementById('create-desc').value.trim();
-    var cat   = document.getElementById('create-cat').value;
-    if (!title) { alert('제목을 입력해주세요!'); return; }
-    if (!desc)  { alert('내용을 입력해주세요!'); return; }
-    var item = { id: genId(), title: title, category: cat, desc: desc, date: today() };
-    studies.unshift(item);
-    saveData(studies);
-    readEntry(item.id);
-  }
- 
-  function showUpdate() {
-    var item = null;
-    for (var i = 0; i < studies.length; i++) { if (studies[i].id === currentId) { item = studies[i]; break; } }
-    if (!item) return;
-    renderSidebar();
-    document.getElementById('update-title').value = item.title;
-    document.getElementById('update-desc').value  = item.desc;
-    document.getElementById('update-cat').value   = item.category;
-    showView('update');
-  }
- 
-  function saveUpdate() {
-    var title = document.getElementById('update-title').value.trim();
-    var desc  = document.getElementById('update-desc').value.trim();
-    var cat   = document.getElementById('update-cat').value;
-    if (!title) { alert('제목을 입력해주세요!'); return; }
-    var idx = -1;
-    for (var i = 0; i < studies.length; i++) { if (studies[i].id === currentId) { idx = i; break; } }
-    if (idx === -1) return;
-    studies[idx].title    = title;
-    studies[idx].category = cat;
-    studies[idx].desc     = desc;
-    saveData(studies);
-    readEntry(currentId);
-  }
- 
-  function deleteEntry() {
-    if (!confirm('정말 삭제할까요?')) return;
-    studies = studies.filter(function(s){ return s.id !== currentId; });
-    saveData(studies);
-    currentId = null;
-    if (studies.length > 0) readEntry(studies[0].id);
-    else { showView('empty'); renderSidebar(); }
-  }
- 
-  function cancelForm() {
-    if (currentId) readEntry(currentId);
-    else if (studies.length > 0) readEntry(studies[0].id);
-    else showView('empty');
-  }
- 
-  function filterByCategory(cat) {
-    filterCat = cat;
-    var filtered = studies.filter(function(s){ return s.category === cat; });
-    var color = CATEGORIES[cat] || '#6b7280';
-    document.getElementById('cat-view-chip').textContent = cat;
-    document.getElementById('cat-view-chip').style.background = color;
-    document.getElementById('cat-view-count').textContent = filtered.length + '개의 기록';
- 
-    if (filtered.length === 0) {
-      document.getElementById('cat-view-grid').innerHTML = '<p style="color:#475569;font-size:13px;">해당 카테고리에 기록이 없습니다.</p>';
-    } else {
-      document.getElementById('cat-view-grid').innerHTML = filtered.map(function(s) {
-        return '<div class="cat-item" onclick="readEntry(\'' + s.id + '\')">'
-          + '<div class="cat-item-title">' + s.title + '</div>'
-          + '<div class="cat-item-date">' + s.date + '</div>'
-          + '</div>';
-      }).join('');
-    }
-    currentId = null;
-    showView('cat');
-    renderSidebar();
-  }
- 
-  function clearFilter() {
-    filterCat = null;
-    if (studies.length > 0) readEntry(studies[0].id);
-    else { showView('empty'); renderSidebar(); }
-  }
- 
-  // 초기화
+
+  // 2. 카테고리 목록 (사이드바 하단 필터)
+  var catHTML = '<li><a onclick="clearFilter()" class="' + (!filterCat ? 'active' : '') + '">'
+    + '<span class="cat-badge" style="background:#334155"></span> 전체보기</a></li>';
+
+  Object.keys(CATEGORIES).forEach(function(cat) {
+    var count = studies.filter(function(s){ return s.category === cat; }).length;
+    var color = CATEGORIES[cat];
+    var active = filterCat === cat ? ' active' : '';
+
+    catHTML += '<li><a onclick="filterByCategory(\'' + cat + '\')" class="' + active + '">'
+      + '<span class="cat-badge" style="background:' + color + '"></span>'
+      + cat + ' <span style="margin-left:auto;font-size:10px;color:#475569;">' + count + '</span>'
+      + '</a></li>';
+  });
+  document.getElementById('cat-list').innerHTML = catHTML;
+
+  // 3. 드롭다운(Select) 메뉴 채우기 🔥 (질문하신 핵심 부분)
+  var opts = Object.keys(CATEGORIES)
+    .map(c => '<option value="' + c + '">' + c + '</option>')
+    .join('');
+
+  document.getElementById('create-cat').innerHTML = opts;
+  document.getElementById('update-cat').innerHTML = opts;
+}
+
+// ======================
+// 🔥 CRUD 기능
+// ======================
+function readEntry(id) {
+  var item = studies.find(s => s.id === id);
+  if (!item) return;
+
+  currentId = id;
+
+  document.getElementById('read-title').textContent = item.title;
+  document.getElementById('read-body').textContent = item.desc;
+
+  var chip = document.getElementById('read-cat');
+  chip.textContent = item.category;
+  chip.style.background = CATEGORIES[item.category];
+
+  document.getElementById('read-date').textContent = item.date;
+
+  showView('read');
   renderSidebar();
+}
+
+function showCreate() {
+  // 새 글 폼 초기화
+  document.getElementById('create-title').value = '';
+  document.getElementById('create-desc').value = '';
+  document.getElementById('create-cat').value = 'Web'; // 기본값 설정
+  showView('create');
+}
+
+async function saveCreate() {
+  var title = document.getElementById('create-title').value.trim();
+  var desc = document.getElementById('create-desc').value.trim();
+  var cat = document.getElementById('create-cat').value;
+
+  if (!title) return alert('제목을 입력하세요.');
+  if (!desc) return alert('내용을 입력하세요.');
+
+  var item = {
+    id: genId(),
+    title: title,
+    category: cat,
+    desc: desc,
+    date: today()
+  };
+
+  await createData(item);
+  studies = await loadData();
+  readEntry(item.id);
+}
+
+function showUpdate() {
+  var item = studies.find(s => s.id === currentId);
+  if (!item) return;
+
+  document.getElementById('update-title').value = item.title;
+  document.getElementById('update-desc').value = item.desc;
+  document.getElementById('update-cat').value = item.category;
+
+  showView('update');
+}
+
+async function saveUpdate() {
+  var title = document.getElementById('update-title').value.trim();
+  var desc = document.getElementById('update-desc').value.trim();
+  var cat = document.getElementById('update-cat').value;
+
+  var item = {
+    id: currentId,
+    title: title,
+    category: cat,
+    desc: desc,
+    date: today()
+  };
+
+  await updateData(currentId, item);
+  studies = await loadData();
+  readEntry(currentId);
+}
+
+async function deleteEntry() {
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+
+  await deleteData(currentId);
+  studies = await loadData();
+
   if (studies.length > 0) readEntry(studies[0].id);
   else showView('empty');
+}
+
+function cancelForm() {
+  if (currentId) readEntry(currentId);
+  else if (studies.length > 0) readEntry(studies[0].id);
+  else showView('empty');
+}
+
+// ======================
+// 🔥 카테고리 필터링
+// ======================
+function filterByCategory(cat) {
+  filterCat = cat;
+  var filtered = studies.filter(s => s.category === cat);
+  var color = CATEGORIES[cat];
+
+  document.getElementById('cat-view-chip').textContent = cat;
+  document.getElementById('cat-view-chip').style.background = color;
+  document.getElementById('cat-view-count').textContent = filtered.length + '개의 기록';
+
+  if (filtered.length === 0) {
+    document.getElementById('cat-view-grid').innerHTML = '<p style="color:#475569; padding:20px;">기록이 없습니다.</p>';
+  } else {
+    document.getElementById('cat-view-grid').innerHTML = filtered.map(s => `
+        <div class="cat-item" onclick="readEntry('${s.id}')">
+          <div class="cat-item-title">${s.title}</div>
+          <div class="cat-item-date">${s.date}</div>
+        </div>
+      `).join('');
+  }
+
+  currentId = null;
+  showView('cat');
+  renderSidebar();
+}
+
+function clearFilter() {
+  filterCat = null;
+  if (studies.length > 0) readEntry(studies[0].id);
+  else showView('empty');
+}
+
+// ======================
+// 🔥 초기 실행
+// ======================
+async function init() {
+  studies = await loadData();
+  renderSidebar(); // 여기서 드롭다운도 같이 채워짐
+
+  if (studies.length > 0) readEntry(studies[0].id);
+  else showView('empty');
+}
+
+init();
 </script>
 </body>
 </html>
