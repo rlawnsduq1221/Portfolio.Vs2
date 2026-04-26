@@ -1,0 +1,39 @@
+{
+  "pages": [
+    {
+      "id": "page_1",
+      "title": "시작하기",
+      "emoji": "👋",
+      "category": "일반",
+      "content": "# Study Board에 오신 걸 환영합니다!\n\n공부한 내용을 자유롭게 정리해보세요.\n\n## 마크다운 문법\n\n**굵게** / *기울임* / `인라인 코드`\n\n```js\n// 코드 블록\nconsole.log(\"Hello, Study Board!\");\n```\n\n## 리스트\n- 항목 1\n- 항목 2\n- 항목 3",
+      "createdAt": "2026-04-24T11:41:21.165Z",
+      "updatedAt": "2026-04-24T11:43:17.270Z"
+    },
+    {
+      "id": "page_2",
+      "title": "JavaScript 핵심 정리",
+      "emoji": "📝",
+      "category": "JavaScript",
+      "content": "# JavaScript 핵심 개념\n\n## 클로저 (Closure)\n\n함수가 선언될 당시의 스코프를 기억하는 것.\n\n```js\nfunction counter() {\n  let count = 0;\n  return () => ++count;\n}\nconst inc = counter();\ninc(); // 1\ninc(); // 2\n```\n\n## 프로미스 (Promise)\n\n```js\nfetch(url)\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));\n```",
+      "createdAt": "2026-04-24T11:41:21.168Z",
+      "updatedAt": "2026-04-24T11:41:21.168Z"
+    },
+    {
+      "id": "page_1777031015819",
+      "title": "연습",
+      "emoji": "📄",
+      "category": "Node.js",
+      "content": "안녕하세요",
+      "createdAt": "2026-04-24T11:43:35.819Z",
+      "updatedAt": "2026-04-24T11:43:35.819Z"
+    }
+  ],
+  "categories": [
+    "일반",
+    "JavaScript",
+    "React",
+    "CSS",
+    "Node.js",
+    "알고리즘"
+  ]
+}

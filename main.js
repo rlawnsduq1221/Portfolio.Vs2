@@ -162,7 +162,6 @@ input, textarea {
             <a href="https://portfolio-vs2-lime.vercel.app"><h3>Return to original page</h3></a>
         </div>
     </header> 
-
       <nav>${list}</nav>
       <div class="control">${control}</div>
       <main class="content-box">
