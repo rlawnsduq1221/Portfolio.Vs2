@@ -491,75 +491,70 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<script>
+  /* ══════════════════════════════════════════
+     Study Board — 로컬호스트 API 연동
+     (Firebase 대체: http://localhost:3000)
+  ══════════════════════════════════════════ */
+  const API_BASE = 'http://localhost:3000';
 
-  // 1. 보내주신 파이어베이스 구성 정보 적용
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbc2dmhLy_vlfL37f07A9sM2geVOBhpDw",
-    authDomain: "rlawnsduq-a1e5b.firebaseapp.com",
-    projectId: "rlawnsduq-a1e5b",
-    storageBucket: "rlawnsduq-a1e5b.firebasestorage.app",
-    messagingSenderId: "827256551716",
-    appId: "1:827256551716:web:cf43ef93e9b6e267d6dbb1",
-    measurementId: "G-8MB0R6HH5N"
-  };
-
-  // 2. 파이어베이스 초기화
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const DOC_ID = "shared_study_board"; // 데이터가 저장될 문서 이름
-
-  // --- 기존의 로직을 파이어베이스용으로 대체 ---
-
-  // 실시간 데이터 동기화 함수
-  async function syncWithFirebase() {
-    const docRef = doc(db, "boards", DOC_ID);
-    
-    // 파이어베이스 데이터 변경 감지 (디자인 변경 없이 데이터만 업데이트)
-    onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        allPages = data.pages || [];
-        allCategories = data.categories || [];
-        
-        // 사이드바 리렌더링
-        renderSidebar();
-        
-        // 현재 편집 중이 아닐 때만 메인 화면 업데이트
-        if (currentPage && currentTab === 'view') {
-          currentPage = allPages.find(p => p.id === currentPage.id) || null;
-          renderMain();
-        }
-      } else {
-        // 데이터가 아예 없을 경우 초기 데이터 업로드
-        saveToFirebase(INITIAL_DATA);
-      }
-    });
-  }
-
-  // 데이터 업로드 함수
-  async function saveToFirebase(data) {
+  // 서버에서 데이터 불러오기
+  async function loadFromServer() {
     try {
-      await setDoc(doc(db, "boards", DOC_ID), data);
+      const res = await fetch(`${API_BASE}/api/board`);
+      if (!res.ok) throw new Error('서버 응답 오류');
+      const data = await res.json();
+      allPages = data.pages || [];
+      allCategories = data.categories || [];
+
+      // 사이드바 리렌더링
+      renderSidebar();
+
+      // 현재 편집 중이 아닐 때만 메인 화면 업데이트
+      if (currentPage && currentTab === 'view') {
+        currentPage = allPages.find(p => p.id === currentPage.id) || null;
+        renderMain();
+      }
     } catch (e) {
-      console.error("Error saving to Firebase: ", e);
-      showToast("⚠️ 저장 실패 (권한 설정을 확인하세요)");
+      console.error('서버 로드 실패, 로컬스토리지 사용:', e);
+      // 서버 연결 실패 시 로컬스토리지로 폴백
+      const data = lsRead();
+      allPages = data.pages || [];
+      allCategories = data.categories || [];
+      renderSidebar();
     }
   }
 
-  // 전역 함수 등록 (기존 HTML 내 onclick 이벤트 대응)
-  window.saveToFirebase = saveToFirebase;
+  // 서버에 데이터 저장
+  async function saveToServer(data) {
+    try {
+      const res = await fetch(`${API_BASE}/api/board`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error('저장 응답 오류');
+    } catch (e) {
+      console.error('서버 저장 실패, 로컬스토리지에 백업:', e);
+      lsWrite(data); // 실패 시 로컬에 백업
+      showToast('⚠️ 서버 저장 실패 — 로컬에 임시 저장됨');
+    }
+  }
 
-  // 기존 lsWrite 함수를 파이어베이스용으로 덮어쓰기
-  // 이제 lsWrite를 호출하면 로컬이 아닌 파이어베이스에 저장됩니다.
+  // 전역 함수 등록 (하위 호환용)
+  window.saveToServer = saveToServer;
+
+  // lsWrite를 서버 저장으로 덮어쓰기
+  // 이제 lsWrite를 호출하면 서버(localhost:3000)에 저장됩니다.
   window.lsWrite = function(data) {
-    saveToFirebase(data);
+    saveToServer(data);
   };
 
-  // 앱 시작 시 동기화 실행
-  syncWithFirebase();
+  // 주기적 폴링으로 실시간 동기화 (3초마다)
+  setInterval(loadFromServer, 3000);
+
+  // 앱 시작 시 서버에서 데이터 로드
+  loadFromServer();
 </script>
 <script>
 /* ══════════════════════════════════════════
