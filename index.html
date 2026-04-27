@@ -492,6 +492,8 @@
 
 <div class="toast" id="toast"></div>
 <script>
+  const GIST_TOKEN = window.GIST_TOKEN || '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';
+  const GIST_ID    = window.GIST_ID    || '052458fe8f2028745c2f49f7e3cc979e';
   /* ══════════════════════════════════════════
      Study Board — 로컬호스트 API 연동
      (Firebase 대체: http://localhost:3000)
@@ -564,7 +566,7 @@ function showStudy() {
   document.getElementById('portfolioView').style.display = 'none';
   document.getElementById('studyView').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-  loadAll();
+  initStudyBoard();
 }
 function showPortfolio() {
   document.getElementById('studyView').style.display = 'none';
@@ -770,6 +772,12 @@ function loadAll() {
   renderSidebar();
 }
 
+// Study Board 진입 시 Gist 동기화
+function initStudyBoard() {
+  loadAll();       // 먼저 로컬캐시로 빠르게 표시
+  syncFromGist();  // 백그라운드에서 최신 데이터 가져오기
+}
+
 // ── 사이드바 ────────────────────────────────
 function renderSidebar() {
   const nav = document.getElementById('sidebarNav');
@@ -941,6 +949,7 @@ function createPage() {
   };
   data.pages.push(newPage);
   lsWrite(data);
+  gistWrite(data);
   loadAll();
   currentPage = newPage; currentTab = 'view';
   renderMain();
@@ -968,6 +977,7 @@ function savePage() {
     updatedAt: new Date().toISOString()
   };
   lsWrite(data);
+  gistWrite(data);
   currentPage = data.pages[idx];
   loadAll(); currentTab = 'view'; renderMain(); setTab('view'); renderSidebar();
   showToast('✅ 저장되었습니다!');
@@ -978,6 +988,7 @@ function deletePage(id) {
   const data = lsRead();
   data.pages = data.pages.filter(p => p.id !== id);
   lsWrite(data);
+  gistWrite(data);
   currentPage = null;
   loadAll();
   document.getElementById('tabBar').style.display = 'none';
