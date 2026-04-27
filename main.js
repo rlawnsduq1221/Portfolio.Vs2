@@ -1,26 +1,17 @@
 /**
- * main.js — Study Board 로컬 서버 (Firebase 대체)
+ * main.js — Study Board 로컬 서버 (순수 Node.js)
  * 실행: node main.js
- * 필요 패키지: npm install express cors
+ * 외부 패키지 없음 — Node.js 기본 모듈만 사용
  */
 
-const express = require('express');
-const cors    = require('cors');
-const fs      = require('fs');
-const path    = require('path');
+const http = require('http');
+const fs   = require('fs');
+const path = require('path');
 
-const app  = express();
-const PORT = 3000;
-
-// ── 미들웨어 ──────────────────────────────────
-app.use(cors());                          // 브라우저 CORS 허용
-app.use(express.json());                  // JSON 바디 파싱
-app.use(express.static(__dirname));       // index.html, 이미지 등 정적 파일 제공
-
-// ── 데이터 파일 경로 ──────────────────────────
+const PORT    = 3000;
 const DB_FILE = path.join(__dirname, 'board_data.json');
 
-// 초기 데이터 (서버 최초 실행 시 파일이 없을 때 사용)
+// ── 초기 데이터 ───────────────────────────────
 const INITIAL_DATA = {
   pages: [
     {
@@ -55,7 +46,7 @@ const INITIAL_DATA = {
   categories: ['일반', 'JavaScript', 'React', 'CSS', 'Node.js', '알고리즘']
 };
 
-// ── 헬퍼: JSON 파일 읽기 / 쓰기 ──────────────
+// ── DB 헬퍼 ───────────────────────────────────
 function readDB() {
   try {
     if (!fs.existsSync(DB_FILE)) return JSON.parse(JSON.stringify(INITIAL_DATA));
@@ -67,42 +58,104 @@ function readDB() {
 }
 
 function writeDB(data) {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (e) {
-    console.error('DB 쓰기 오류:', e);
-    throw e;
-  }
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// ── API 라우트 ────────────────────────────────
+// ── MIME 타입 ─────────────────────────────────
+function getMime(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const map = {
+    '.html': 'text/html; charset=utf-8',
+    '.js':   'application/javascript',
+    '.css':  'text/css',
+    '.json': 'application/json',
+    '.png':  'image/png',
+    '.jpg':  'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.svg':  'image/svg+xml',
+    '.ico':  'image/x-icon'
+  };
+  return map[ext] || 'application/octet-stream';
+}
 
-// GET /api/board — 전체 데이터 조회
-app.get('/api/board', (req, res) => {
-  try {
-    const data = readDB();
-    res.json(data);
-  } catch (e) {
-    res.status(500).json({ error: '데이터 로드 실패' });
-  }
-});
+// ── CORS 헤더 ─────────────────────────────────
+function setCORS(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
 
-// POST /api/board — 전체 데이터 저장 (Firebase setDoc 대체)
-app.post('/api/board', (req, res) => {
-  try {
-    const data = req.body;
-    if (!data || !Array.isArray(data.pages)) {
-      return res.status(400).json({ error: '잘못된 데이터 형식' });
+// ── JSON 응답 헬퍼 ────────────────────────────
+function sendJSON(res, statusCode, data) {
+  setCORS(res);
+  res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(data));
+}
+
+// ── 정적 파일 서빙 ────────────────────────────
+function serveStatic(res, filePath) {
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      res.writeHead(404);
+      res.end('Not Found');
+      return;
     }
-    writeDB(data);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: '데이터 저장 실패' });
+    res.writeHead(200, { 'Content-Type': getMime(filePath) });
+    res.end(content);
+  });
+}
+
+// ── 서버 ─────────────────────────────────────
+const server = http.createServer((req, res) => {
+  const { method, url } = req;
+
+  // CORS preflight
+  if (method === 'OPTIONS') {
+    setCORS(res);
+    res.writeHead(204);
+    res.end();
+    return;
   }
+
+  // ── GET /api/board — 데이터 조회 ──────────
+  if (method === 'GET' && url === '/api/board') {
+    const data = readDB();
+    sendJSON(res, 200, data);
+    return;
+  }
+
+  // ── POST /api/board — 데이터 저장 ─────────
+  if (method === 'POST' && url === '/api/board') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        if (!data || !Array.isArray(data.pages)) {
+          sendJSON(res, 400, { error: '잘못된 데이터 형식' });
+          return;
+        }
+        writeDB(data);
+        sendJSON(res, 200, { success: true });
+      } catch (e) {
+        sendJSON(res, 500, { error: '데이터 저장 실패' });
+      }
+    });
+    return;
+  }
+
+  // ── 정적 파일 서빙 (index.html, 이미지 등) ─
+  let filePath = path.join(__dirname, url === '/' ? 'index.html' : url);
+  // 경로 탈출 방지
+  if (!filePath.startsWith(__dirname)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
+  serveStatic(res, filePath);
 });
 
-// ── 서버 시작 ─────────────────────────────────
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`✅ Study Board 서버 실행 중: http://localhost:${PORT}`);
   console.log(`   데이터 파일: ${DB_FILE}`);
   console.log(`   종료: Ctrl + C`);
